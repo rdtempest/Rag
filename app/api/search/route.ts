@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server'
-import OpenAI from 'openai'
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/auth.config";
-import { Message } from '@/types/message'
+import { sqlConnect } from '../sql/sqlConnect.js';
+import { SearchRequest } from '@/components/SearchRequest';
+import executeStoredProcedure from '../sql/sqlExecuteStoredProcedure';
+import { Connection, TYPES } from 'tedious';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
 
 export async function POST(req: Request) {
   // Get the session
@@ -48,30 +47,42 @@ export async function POST(req: Request) {
     permissions: session.user.permissions
   })
 
+
   try {
-    const { messages } = await req.json()
-    const robmsg=messages.map((message: Message) => ({
-      role: message.role,
-      content: message.content,
-    }))
-    console.log('Messages:', robmsg);
+    console.log('***RDT*** sql request received - req.body:', req.body);
+    console.log( req);
+    const requestBody = await req.json();
+    const userSearchRequest: SearchRequest = requestBody.searchRequest;
+    console.log('***RDT*** sql request received - userSearchRequest:', userSearchRequest);
+    // declare @st nvarchar(max)
+    // set @st='New York City'
+    // exec get_topX_matches @st,5
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: robmsg,
-    })
+   // const selectQuery = `exec get_topX_matches @st,5`;
 
-    return NextResponse.json({
-      message: response.choices[0].message.content,
-    })
+    // const selectQuery = "select count(*) as DocumentCount from FileStorage";
+    const dbaConnection:Connection = await sqlConnect();
+    const spName:string = 'get_topX_matches';
+    const params = [
+      { name: 'inputText', type: TYPES.NVarChar, value: userSearchRequest.SemanticSearchPhrase } ,
+      { name: 'matchesRequested ', type: TYPES.Int, value: 1 } 
+    ];
+        console.log('***RDT*** sql request - calling executeStoredProcedure:', spName); 
+        console.log('***RDT*** sql request - params:', params);
 
-  } catch (error) {
-    console.error('*******Error:', error)
+        const results = await executeStoredProcedure(dbaConnection, spName, params);
+        console.log('***RDT*** sql request - Results:', results);
+        const retJson = JSON.stringify(results);
+        console.log('***RDT*** sql request completed - retJson:', retJson);
+        return NextResponse.json(retJson);
+  }
+  catch (error) {
+    console.error('Error making SQL request:', error);
     return NextResponse.json(
-      { error: 'An error occurred while processing your request' },
+      { error: 'An error occurred while making the SQL request' },
       { status: 500 }
     )
   }
-}
+} 
 
 

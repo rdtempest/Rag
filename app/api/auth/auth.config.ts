@@ -47,16 +47,16 @@ async function getUserPermissions(email: string): Promise<UserPermissions> {
   if (email === "rob@rdtempest.com") {
     return {
       canChat: true,
-      canSearch: false,
+      canSearch: true,
       canPredict: true,
       isAdmin: true,
     };
   }
   else if (email === "rdtempest@gmail.com") {
     return {
-      canChat: true,
+      canChat: false,
       canSearch: true,
-      canPredict: false,
+      canPredict: true,
       isAdmin: false,
     };
   }
@@ -76,6 +76,7 @@ async function getUserPermissions(email: string): Promise<UserPermissions> {
     canPredict: false,
     isAdmin: false,
   };
+  }
 }
 
 // Define NextAuth options
