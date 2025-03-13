@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, Fragment, ReactNode } from 'react'
 import SearchMessage from '@/components/SearchMessage'
 import SearchInput from '@/components/SearchInput'
 import { SearchRequest } from '@/components/SearchRequest'
@@ -28,7 +28,7 @@ export default function Search() {
     setLoading(true)
     setAuthError(null)
     
-    const defaultSearchRequest: SearchRequest = { SemanticSearchPhrase: 'Email', SearchResult: '' }
+    const defaultSearchRequest: SearchRequest = { SemanticSearchPhrase: 'Email', SearchResult: [{document_id:'1', document_summary: 'Summary'}] }
     const userSearchRequest: SearchRequest = defaultSearchRequest;
     userSearchRequest.SemanticSearchPhrase= message;
     setSearchRequest(userSearchRequest)
@@ -63,7 +63,7 @@ export default function Search() {
 
       const searchRes: SearchRequest = {
         SemanticSearchPhrase: userSearchRequest?.SemanticSearchPhrase || '',
-        SearchResult: parsedData[0].document_id
+        SearchResult: Array.isArray(parsedData) ? parsedData : [{ document_id: '1', document_summary: 'Summary' }]
       }
       
       console.log('searchRequest 1:', searchRequest);
@@ -73,7 +73,8 @@ export default function Search() {
     } catch (error) {
       console.error('Error:', error)
       const errorMessage: SearchRequest = defaultSearchRequest;
-      errorMessage.SearchResult = 'An error occurred'
+      errorMessage.SearchResult[0].document_id = '1'; // Set error message
+      errorMessage.SearchResult[0].document_summary = 'Summary'; // Set error message
       setSearchRequest(errorMessage)
       setAuthError('An error occurred')
       setSearchRequest(undefined) // Clear messages when unauthorized
@@ -151,16 +152,42 @@ export default function Search() {
             gap: 2
           }}
         >
+          {searchRequest?.SemanticSearchPhrase && (
             <SearchMessage 
               key={1}
               role={'user'}
-              content={searchRequest?.SemanticSearchPhrase || 'zzzz'}
+              content={searchRequest.SemanticSearchPhrase}
             />
+          )}
+          {searchRequest?.SearchResult && (
             <SearchMessage 
               key={2}
               role={'assistant'}
-              content={searchRequest?.SearchResult || 'Nothing to display'}
+              content={
+                (() => {
+                  const searchResultContent: ReactNode = (
+                    <Box component="span">
+                      {searchRequest.SearchResult.map((result, index) => (
+                        <Typography
+                          key={`${result.document_id}-${index}`}
+                          component="div"
+                          sx={{ mb: 1 }}
+                        >
+                          <Box component="span" sx={{ color: 'blue', fontWeight: 'bold' }}>
+                            {result.document_id}
+                          </Box>
+                          <Box component="span" sx={{ color: 'green', fontStyle: 'italic' }}>
+                            : {result.document_summary}
+                          </Box>
+                        </Typography>
+                      ))}
+                    </Box>
+                  );
+                  return searchResultContent;
+                })()
+              }
             />
+          )}
           {loading && (
             <SearchMessage 
               role="assistant"

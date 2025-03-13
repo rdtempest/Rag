@@ -1,5 +1,5 @@
-import { Connection, Request, TYPES } from 'tedious';
-
+import { Request, TYPES } from 'tedious';
+// import { Connection } from 'tedious';
   
 async function sqlInsertStatement(connection, insertStatement) {  
 
@@ -40,7 +40,8 @@ async function sqlInsertStatement(connection, insertStatement) {
         // });
 
         // Close the connection after the final event emitted by the request, after the callback passes
-        request.on("requestCompleted", function (rowCount, more) {
+//was        request.on("requestCompleted", function (rowCount, more) {
+            request.on("requestCompleted", function () {
             resolve();
         });
         request.on('error', err => {
