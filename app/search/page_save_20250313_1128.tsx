@@ -1,24 +1,21 @@
 'use client'
 
-import { useState, useRef, useEffect, ReactNode } from 'react'
+import { useState, useRef, useEffect,  ReactNode } from 'react'
 import SearchMessage from '@/components/SearchMessage'
 import SearchInput from '@/components/SearchInput'
 import { SearchRequest } from '@/components/SearchRequest'
-import { Box, Container, Paper, Typography, Button, Drawer } from '@mui/material'
+import { Box, Container, Paper, Typography, Button } from '@mui/material'
 import { useRouter } from 'next/navigation'
 
-export default function Search() {
+
+//export default function Search() {
+
+ function Searchxxxx() {
   const router = useRouter()
   const [searchRequest, setSearchRequest] = useState<SearchRequest | undefined>(undefined)
   const [loading, setLoading] = useState(false)
   const [authError, setAuthError] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  // New state for the document panel
-  const [documentPanel, setDocumentPanel] = useState({
-    open: false,
-    documentId: '',
-    documentText: ''
-  })
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -67,7 +64,7 @@ export default function Search() {
 
       const searchRes: SearchRequest = {
         SemanticSearchPhrase: userSearchRequest?.SemanticSearchPhrase || '',
-        SearchResult: Array.isArray(parsedData) ? parsedData : [{ document_id: '1', document_summary: '' }]
+        SearchResult: Array.isArray(parsedData) ? parsedData : [{ document_id: '1', document_summary: 'Summary' }]
       }
       
       console.log('searchRequest 1:', searchRequest);
@@ -86,23 +83,6 @@ export default function Search() {
       setLoading(false)
       console.log('searchRequest: 2', searchRequest);
     }
-  }
-
-  // New function to handle document click using existing document_text
-  const handleDocumentClick = (documentId: string, documentText: string) => {
-    setDocumentPanel({
-      open: true,
-      documentId: documentId,
-      documentText: documentText
-    })
-  }
-
-  // Function to close the document panel
-  const handleCloseDocumentPanel = () => {
-    setDocumentPanel(prev => ({
-      ...prev,
-      open: false
-    }))
   }
 
   if (authError) {
@@ -190,23 +170,12 @@ export default function Search() {
                   <Box component="span">
                       {searchRequest.SearchResult.map((result, index) => (
                         <Typography
-                          display={'block'}
+                        display={'block'}
                           key={`${result.document_id}-${index}`}
                           component="span"
                           sx={{ mb: 1 }}
                         >
-                          <Box 
-                            component="span" 
-                            sx={{ 
-                              color: 'blue', 
-                              fontWeight: 'bold',
-                              cursor: 'pointer',
-                              '&:hover': {
-                                textDecoration: 'underline'
-                              }
-                            }}
-                            onClick={() => handleDocumentClick(result.document_id, result.document_text)}
-                          >
+                          <Box component="span" sx={{ color: 'blue', fontWeight: 'bold' }}>
                             {result.document_id}
                           </Box>
                           <Box component="span" sx={{ color: 'green', fontStyle: 'italic' }}>
@@ -232,44 +201,6 @@ export default function Search() {
         </Box>
         <SearchInput onSendMessage={handleSendMessage} disabled={loading} />
       </Paper>
-
-      {/* Document Text Panel */}
-      <Drawer
-        anchor="right"
-        open={documentPanel.open}
-        onClose={handleCloseDocumentPanel}
-      >
-        <Box
-          sx={{
-            width: 800,
-            p: 3,
-            height: '100%',
-            display: 'flex',
-            flexDirection: 'column'
-          }}
-        >
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-            <Typography variant="h6">
-              Document: {documentPanel.documentId}
-            </Typography>
-            <Button onClick={handleCloseDocumentPanel}>Close</Button>
-          </Box>
-          <Paper
-            elevation={1}
-            sx={{
-              p: 2,
-              flexGrow: 1,
-              overflowY: 'auto',
-              bgcolor: 'background.paper',
-              borderRadius: 1
-            }}
-          >
-            <Typography component="pre" sx={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace' }}>
-              {documentPanel.documentText}
-            </Typography>
-          </Paper>
-        </Box>
-      </Drawer>
     </Container>
   )
 }
