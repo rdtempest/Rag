@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, Fragment, ReactNode } from 'react'
+import { useState, useRef, useEffect,  ReactNode } from 'react'
 import SearchMessage from '@/components/SearchMessage'
 import SearchInput from '@/components/SearchInput'
 import { SearchRequest } from '@/components/SearchRequest'
@@ -166,11 +166,12 @@ export default function Search() {
               content={
                 (() => {
                   const searchResultContent: ReactNode = (
-                    <Box component="span">
+                  <Box component="span">
                       {searchRequest.SearchResult.map((result, index) => (
                         <Typography
+                        display={'block'}
                           key={`${result.document_id}-${index}`}
-                          component="div"
+                          component="span"
                           sx={{ mb: 1 }}
                         >
                           <Box component="span" sx={{ color: 'blue', fontWeight: 'bold' }}>
