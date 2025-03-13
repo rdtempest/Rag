@@ -1,77 +1,166 @@
 import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import Anthropic from '@anthropic-ai/sdk';
+
 import { getServerSession } from "next-auth/next"
-import { authOptions } from "../auth/auth.config";
+import { authOptions } from "../auth/auth.config"
 import { Message } from '@/types/message'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+// Interface for chat providers
+interface ChatProvider {
+  generateCompletion(messages: Message[]): Promise<string>;
+}
 
+// OpenAI Provider implementation
+class OpenAIProvider implements ChatProvider {
+  private client: OpenAI;
+
+  constructor(apiKey: string) {
+    this.client = new OpenAI({ apiKey });
+  }
+
+  async generateCompletion(messages: Message[]): Promise<string> {
+    const response = await this.client.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: messages.map(message => ({
+        role: message.role,
+        content: message.content,
+      })),
+    });
+    console.log('Open AI called');
+    return response.choices[0].message.content || '';
+  }
+}
+
+// Other providers as needed, for example:
+class GeminiProvider implements ChatProvider {
+  private genAI: GoogleGenerativeAI;
+/* eslint-disable @typescript-eslint/no-explicit-any */
+private model: any;
+/* eslint-enable @typescript-eslint/no-explicit-any */
+  constructor(apiKey: string) {
+    this.genAI = new GoogleGenerativeAI(apiKey);
+    this.model = this.genAI.getGenerativeModel({ model: "gemini-2.0-flash-001" });
+   
+  }
+//  "gemini-2.0-flash-001" });
+// gemini-1.5-pro-001
+// gemini-1.5-pro-002
+
+
+  async generateCompletion(messages: Message[]): Promise<string> {
+    // Implement Gemini completion logic
+    const prompt = messages.at(-1)?.content
+    const result = await this.model.generateContent(prompt);
+    console.log('Gemini called');
+    return result.response.text() || '';
+S  }
+}
+
+class AnthropicProvider implements ChatProvider {
+  private client: Anthropic;
+  private model: string;
+  constructor(apiKey: string) {
+    this.client = new Anthropic({
+      apiKey: apiKey, 
+    });
+    this.model= "claude-3-7-sonnet-20250219";
+
+  }
+  async generateCompletion(messages: Message[]): Promise<string> {
+    const response = await this.client.messages.create({
+      model: this.model,
+      max_tokens: 1024,
+      messages: messages.map(message => ({
+        role: message.role,
+        content: message.content,
+      })),
+    });
+    console.log('Anthropic called called');
+
+    return response.content[0].text || '';
+  }
+//      model: "claude-3-7-sonnet-20250219",
+  }
+
+
+// Factory to get the appropriate provider
+function getChatProvider(preferredProvider: string): ChatProvider {
+  const provider = preferredProvider.toLowerCase();
+  
+  switch (provider) {
+    case 'openai':
+      console.log('Using OpenAI provider');
+      return new OpenAIProvider(process.env.OPENAI_API_KEY!);
+    case 'anthropic':
+      console.log('Using Anthropic provider');
+      return new AnthropicProvider(process.env.ANTHROPIC_API_KEY!);
+    case 'gemini':
+      console.log('Using Gemini provider');
+      return new GeminiProvider(process.env.GEMINI_API_KEY!);
+    default:
+      return new OpenAIProvider(process.env.OPENAI_API_KEY!);
+  }
+}
 export async function POST(req: Request) {
   // Get the session
-  const session = await getServerSession(authOptions)
+  const session = await getServerSession(authOptions);
 
-  console.log('chat_route.ts Session:', session)
+  console.log('chat_route.ts Session:', session);
 
-  
   // Check if user is authenticated
   if (!session?.user) {
-    console.log(`***** User(${session}) is not authenticated`)
+    console.log(`***** User(${session}) is not authenticated`);
     return NextResponse.json(
       { error: 'Unauthorized' },
       { status: 401 }
-    )
+    );
   }
 
   // Check if user has chat permission
   if (!session.user.permissions?.canChat) {
     console.log(`***** User(${session}) is not authorized to chat`);
-    console.log("session.user:",session.user);
-    
-    console.log(`***** session.user(${session.user}) is not authorized to chat`);
-    console.log(`***** session.user.permissions(${session.user.permissions}) is not authorized to chat`);
     return NextResponse.json(
       { error: 'Permission denied' },
       { status: 403 }
-    )
+    );
   }
 
   // Access user details
-  const userId = session.user.id
-  const userEmail = session.user.email
-  const userName = session.user.name
+  const userId = session.user.id;
+  const userEmail = session.user.email;
+  const userName = session.user.name;
   console.log('User making request:', {
     id: userId,
     name: userName,
     email: userEmail,
     permissions: session.user.permissions
-  })
+  });
 
   try {
-    const { messages } = await req.json()
-    const robmsg=messages.map((message: Message) => ({
-      role: message.role,
-      content: message.content,
-    }))
-    console.log('Messages:', robmsg);
+    const { messages } = await req.json();
+//    console.log('Messages:', messages);
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: robmsg,
-    })
+   // Get preferred provider from cookie
+   const cookies = req.headers.get('cookie');
+   const preferredProvider = cookies?.split(';')
+     .find(c => c.trim().startsWith('preferred-chat-provider='))
+     ?.split('=')[1] || 'openai';
+
+   const chatProvider = getChatProvider(preferredProvider);
+    // Generate completion using the selected provider
+    const response = await chatProvider.generateCompletion(messages);
 
     return NextResponse.json({
-      message: response.choices[0].message.content,
-    })
+      message: response,
+    });
 
   } catch (error) {
-    console.error('*******Error:', error)
+    console.error('*******Error:', error);
     return NextResponse.json(
       { error: 'An error occurred while processing your request' },
       { status: 500 }
-    )
+    );
   }
 }
-
-

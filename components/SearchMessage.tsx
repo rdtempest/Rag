@@ -1,8 +1,9 @@
 import { Paper, Typography, Box, CircularProgress } from '@mui/material'
+import { ReactNode } from 'react'
 
 interface SearchMessageProps {
   role: 'user' | 'assistant'
-  content: string
+  content: ReactNode  // Change this from string to ReactNode
   loading?: boolean
 }
 

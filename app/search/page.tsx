@@ -32,7 +32,7 @@ export default function Search() {
     setLoading(true)
     setAuthError(null)
     
-    const defaultSearchRequest: SearchRequest = { SemanticSearchPhrase: 'Email', SearchResult: [{document_id:'1', document_summary: 'Summary'}] }
+    const defaultSearchRequest: SearchRequest = { SemanticSearchPhrase: 'Email', SearchResult: [{document_id:'abc', document_summary: 'Thinking...'}] }
     const userSearchRequest: SearchRequest = defaultSearchRequest;
     userSearchRequest.SemanticSearchPhrase= message;
     setSearchRequest(userSearchRequest)
@@ -67,7 +67,7 @@ export default function Search() {
 
       const searchRes: SearchRequest = {
         SemanticSearchPhrase: userSearchRequest?.SemanticSearchPhrase || '',
-        SearchResult: Array.isArray(parsedData) ? parsedData : [{ document_id: '1', document_summary: '' }]
+        SearchResult: Array.isArray(parsedData) ? parsedData : [{ document_id: 'qqq', document_summary: '' }]
       }
       
       console.log('searchRequest 1:', searchRequest);
@@ -77,8 +77,8 @@ export default function Search() {
     } catch (error) {
       console.error('Error:', error)
       const errorMessage: SearchRequest = defaultSearchRequest;
-      errorMessage.SearchResult[0].document_id = '1'; // Set error message
-      errorMessage.SearchResult[0].document_summary = 'Summary'; // Set error message
+      errorMessage.SearchResult[0].document_id = 'err'; // Set error message
+      errorMessage.SearchResult[0].document_summary = ''; // Set error message
       setSearchRequest(errorMessage)
       setAuthError('An error occurred')
       setSearchRequest(undefined) // Clear messages when unauthorized
@@ -205,8 +205,12 @@ export default function Search() {
                                 textDecoration: 'underline'
                               }
                             }}
-                            onClick={() => handleDocumentClick(result.document_id, result.document_text)}
-                          >
+                            onClick={() => {
+                                if (result.document_text) {
+                                  handleDocumentClick(result.document_id, result.document_text)
+                                }
+                              }}
+                                                        >
                             {result.document_id}
                           </Box>
                           <Box component="span" sx={{ color: 'green', fontStyle: 'italic' }}>

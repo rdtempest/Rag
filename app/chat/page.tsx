@@ -5,6 +5,7 @@ import ChatMessage from '@/components/ChatMessage'
 import ChatInput from '@/components/ChatInput'
 import { Box, Container, Paper, Typography, Button } from '@mui/material'
 import { useRouter } from 'next/navigation'
+import ProviderSettings, { Provider } from '@/components/ProviderSettings';
 
 interface Message {
   role: 'user' | 'assistant'
@@ -26,12 +27,19 @@ export default function Chat() {
     scrollToBottom()
   }, [messages])
 
+  const handleProviderChange = (provider: Provider) => {
+    // Optionally handle provider changes, such as clearing chat history
+    // or showing a notification
+    console.log('Chat provider changed to:', provider);
+  };
+
   const handleSendMessage = async (message: string) => {
     setLoading(true)
     setAuthError(null)
     
     const userMessage: Message = { role: 'user', content: message }
     setMessages(prev => [...prev, userMessage])
+
   
     try {
       const response = await fetch('/api/chat', {
@@ -104,7 +112,7 @@ export default function Chat() {
             </Button>
           </Paper>
         </Box>
-      </Container>
+    </Container>
     )
   }
   return (
@@ -158,6 +166,7 @@ export default function Chat() {
         </Box>
         <ChatInput onSendMessage={handleSendMessage} disabled={loading} />
       </Paper>
+      <ProviderSettings onProviderChange={handleProviderChange} />
     </Container>
   )
 }
