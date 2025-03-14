@@ -61,23 +61,38 @@ S  }
 class AnthropicProvider implements ChatProvider {
   private client: Anthropic;
   private model: string;
+  private maxTokens: number;
+  private apiKey: string;
+  // private temperature: number;
+  // private topP: number;
+  // private frequencyPenalty: number;
+  // private presencePenalty: number;
+  // private stopSequences: string[];
+  // private system: string;
+  // private maxTokensToSample: number;
+  // private topK: number;
+  // private topP: number;
+  
   constructor(apiKey: string) {
-    this.client = new Anthropic({
-      apiKey: apiKey, 
-    });
+    this.apiKey = apiKey;
     this.model= "claude-3-7-sonnet-20250219";
+    this.maxTokens= 1024;
+    this.client = new Anthropic({
+      apiKey: this.apiKey, 
+    });
+
 
   }
   async generateCompletion(messages: Message[]): Promise<string> {
     const response = await this.client.messages.create({
       model: this.model,
-      max_tokens: 1024,
+      max_tokens: this.maxTokens,
       messages: messages.map(message => ({
         role: message.role,
         content: message.content,
       })),
     });
-    console.log('Anthropic called called');
+    console.log(`Anthropic called called apiKey: ${this.apiKey} `);
 
     return response.content[0].text || '';
   }
