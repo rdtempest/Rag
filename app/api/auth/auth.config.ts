@@ -70,12 +70,7 @@ async function getUserPermissions(email: string): Promise<UserPermissions> {
   } 
   else {
   // Default users get basic permissions
-  return {
-    canChat: false,
-    canSearch: false,
-    canPredict: false,
-    isAdmin: false,
-  };
+  return defaultPermissions;
   }
 }
 
@@ -94,6 +89,7 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async signIn({ user }: { user: User }): Promise<boolean> {
+      console.log("auth.config.ts signIn:", user);
       return !!user.email;
     },
     async jwt({ token, user }: { token: JWT; user: User }): Promise<JWT> {
@@ -103,6 +99,7 @@ export const authOptions: NextAuthOptions = {
         token.email = user.email;
         token.sub = user.id;
       }
+      console.log("auth.config.ts JWT:", token);
       return token;
     },
     async session({ session, token }: { session: Session; token: JWT }): Promise<Session> {
@@ -111,6 +108,7 @@ export const authOptions: NextAuthOptions = {
         session.user.email = token.email;
         session.user.permissions = token.permissions || defaultPermissions;
       }
+      console.log("auth.config.ts Session:", session);
       return session;
     },
   },

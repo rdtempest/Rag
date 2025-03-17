@@ -55,49 +55,83 @@ private model: any;
     const result = await this.model.generateContent(prompt);
     console.log('Gemini called');
     return result.response.text() || '';
-S  }
+  }
 }
 
+// Anthropic Provider implementation
 class AnthropicProvider implements ChatProvider {
   private client: Anthropic;
   private model: string;
   private maxTokens: number;
-  private apiKey: string;
-  // private temperature: number;
-  // private topP: number;
-  // private frequencyPenalty: number;
-  // private presencePenalty: number;
-  // private stopSequences: string[];
-  // private system: string;
-  // private maxTokensToSample: number;
-  // private topK: number;
-  // private topP: number;
-  
+
   constructor(apiKey: string) {
-    this.apiKey = apiKey;
-    this.model= "claude-3-7-sonnet-20250219";
-    this.maxTokens= 1024;
     this.client = new Anthropic({
-      apiKey: this.apiKey, 
+      apiKey: apiKey,
     });
-
-
+    this.model = "claude-3-7-sonnet-20250219";
+    this.maxTokens = 1024;
   }
+
   async generateCompletion(messages: Message[]): Promise<string> {
     const response = await this.client.messages.create({
       model: this.model,
       max_tokens: this.maxTokens,
       messages: messages.map(message => ({
-        role: message.role,
-        content: message.content,
-      })),
+        role: message.role === 'user' ? 'user' : 'assistant',
+        content: message.content
+      }))
     });
-    console.log(`Anthropic called called apiKey: ${this.apiKey} `);
+    console.log('Anthropic called');
+ // Access the content correctly from the response
+ if (response.content && response.content[0] && 'text' in response.content[0]) {
+  return response.content[0].text;
+}
 
-    return response.content[0].text || '';
-  }
-//      model: "claude-3-7-sonnet-20250219",
-  }
+throw new Error('Unexpected response format from Anthropic');  }
+}
+
+// class AnthropicProvider implements ChatProvider {
+//   private client: Anthropic;
+//   private model: string;
+//   private maxTokens: number;
+//   private apiKey: string;
+//   // private temperature: number;
+//   // private topP: number;
+//   // private frequencyPenalty: number;
+//   // private presencePenalty: number;
+//   // private stopSequences: string[];
+//   // private system: string;
+//   // private maxTokensToSample: number;
+//   // private topK: number;
+//   // private topP: number;
+  
+//   constructor(apiKey: string) {
+//     this.apiKey = apiKey;
+//     this.model= "claude-3-7-sonnet-20250219";
+//     this.maxTokens= 1024;
+//     this.client = new Anthropic({
+//       apiKey: this.apiKey, 
+//     });
+
+
+//   }
+
+
+//   async generateCompletion(messages: Message[]): Promise<string> {
+//     const response = await this.client.messages.create({
+//       model: this.model,
+//       max_tokens: this.maxTokens,
+//       messages: messages.map(message => ({
+//         role: message.role,
+//         content: message.content,
+//       })),
+//     });
+//     console.log(`Anthropic called called apiKey: ${this.apiKey} `);
+
+//     return response.content[0].text || '';
+//   }
+// //      model: "claude-3-7-sonnet-20250219",
+//   }
 
 
 // Factory to get the appropriate provider

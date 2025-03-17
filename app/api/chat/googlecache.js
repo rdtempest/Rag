@@ -7,7 +7,7 @@ import {
 
 // A helper function that uploads the video to be cached.
 async function uploadMp4Video(filePath, displayName) {
-  const fileManager = new GoogleAIFileManager(process.env.GEMINI_API_KEY!);
+  const fileManager = new GoogleAIFileManager(process.env.GEMINI_API_KEY);
   const fileResult = await fileManager.uploadFile(filePath, {
     displayName,
     mimeType: 'video/mp4',
@@ -37,7 +37,7 @@ const pathToVideoFile = 'Sherlock_Jr_FullMovie.mp4';
 const fileResult = await uploadMp4Video(pathToVideoFile, 'Sherlock Jr. video');
 
 // Construct a GoogleAICacheManager using your API key.
-const cacheManager = new GoogleAICacheManager(process.env.GEMINI_API_KEY!);
+const cacheManager = new GoogleAICacheManager(process.env.GEMINI_API_KEY);
 
 // Create a cache with a 5 minute TTL.
 const displayName = 'sherlock jr movie';
@@ -68,7 +68,7 @@ const cache = await cacheManager.create({
 
 // Get your API key from https://aistudio.google.com/app/apikey
 // Access your API key as an environment variable.
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // Construct a `GenerativeModel` which uses the cache object.
 const genModel = genAI.getGenerativeModelFromCachedContent(cache);

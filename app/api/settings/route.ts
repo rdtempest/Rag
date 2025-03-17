@@ -25,6 +25,7 @@ export async function POST(req: Request) {
     });
     return response;
   } catch (error) {
+    console.error('Error updating settings:', error);
     return NextResponse.json(
       { error: 'Failed to update settings' },
       { status: 500 }
