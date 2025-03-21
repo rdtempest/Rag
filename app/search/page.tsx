@@ -32,7 +32,7 @@ export default function Search() {
     setLoading(true)
     setAuthError(null)
     
-    const defaultSearchRequest: SearchRequest = { SemanticSearchPhrase: 'Email', SearchResult: [{document_id:'abc', document_summary: 'Thinking...'}] }
+    const defaultSearchRequest: SearchRequest = { SemanticSearchPhrase: '', SearchResult: [{document_id:'', document_summary: ''}] }
     const userSearchRequest: SearchRequest = defaultSearchRequest;
     userSearchRequest.SemanticSearchPhrase= message;
     setSearchRequest(userSearchRequest)
@@ -228,7 +228,7 @@ export default function Search() {
           {loading && (
             <SearchMessage 
               role="assistant"
-              content="Thinking..."
+              content="Linking..."
               loading={true}
             />
           )}

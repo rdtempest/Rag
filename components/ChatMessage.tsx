@@ -6,10 +6,13 @@ interface ChatMessageProps {
   loading?: boolean
 }
 
+
 export default function ChatMessage({ role, content, loading }: ChatMessageProps) {
   return (
     <Paper
       sx={{
+        whiteSpace: 'pre-wrap',  // This preserves whitespace and line breaks
+        wordBreak: 'break-word',  // This ensures long words don't overflow
         p: 2,
         bgcolor: role === 'user' ? 'primary.dark' : 'background.paper',
         maxWidth: '80%',

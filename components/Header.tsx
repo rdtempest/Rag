@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { useEffect } from 'react';
+import { getPageTitle } from '../utils/pageTitle';
 import {
   AppBar,
   Box,
@@ -54,6 +56,8 @@ export default function Header() {
   const permissions = session?.user?.permissions || {}
   const router = useRouter()
   const pathname = usePathname()
+  console.log('Header - pathname:', pathname)
+
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
@@ -76,6 +80,11 @@ export default function Header() {
   const handleMenuClose = () => {
     setAnchorEl(null)
   }
+  useEffect(() => {
+    console.log('Header useEffect - pathname:', pathname)
+    const pagetitle=getPageTitle(pathname);
+    document.title = pagetitle
+  }, [pathname]);
 
   return (
     <>
