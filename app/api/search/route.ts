@@ -63,7 +63,7 @@ export async function POST(req: Request) {
     // const selectQuery = "select count(*) as DocumentCount from FileStorage";
     const dbaConnection:Connection = await sqlConnect();
     const spName:string = 'get_topX_matches';
-    const numMatches:number = 5;
+    const numMatches:number = 15;
     const params = [
       { name: 'inputText', type: TYPES.NVarChar, value: userSearchRequest.SemanticSearchPhrase } ,
       { name: 'matchesRequested ', type: TYPES.Int, value: numMatches } 
